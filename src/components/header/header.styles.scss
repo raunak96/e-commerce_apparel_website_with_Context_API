@@ -1,26 +1,40 @@
 .header {
-  height: 70px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 25px;
-
-  .logo-container {
-    height: 100%;
-    width: 70px;
-    padding: 25px;
-  }
-
-  .options {
-    width: 50%;
-    height: 100%;
+    height: 70px;
+    width: 100%;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: flex-end;
+    margin-bottom: 25px;
 
-    .option {
-      padding: 10px 15px;
-      cursor: pointer;
+    .logo-container {
+        height: 100%;
+        width: 20vw;
+        padding: 25px;
+        display: flex;
+        align-items: center;
+
+        .logo {
+            height: 200%;
+        }
+        .logo-name {
+            font-size: 1.2em;
+            padding: 5px 10px;
+            margin: auto 0;
+            font-family: "Monoton", cursive;
+            font-weight: bold;
+            color: #808282;
+        }
     }
-  }
+    .options {
+        width: 50%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+
+        .option {
+            padding: 10px 15px;
+            font-size: 1.3em;
+        }
+    }
 }
