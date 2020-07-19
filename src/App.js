@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
 
 import "./App.css";
@@ -14,59 +14,50 @@ import { auth, createUserProfileDocument } from "./firebase/firebase.utils";
 
 import UserContext from "./contexts/user/user.context";
 
-class App extends React.Component {
-    unsubscribeFromAuth = null;
-    state={
-        currentUser:null
-    }
+const App = () => {
+    const [currentUser, setCurrentUser] = useState(null);
 
-    componentDidMount() {
+    useEffect(() => {
+        const unsubscribeFromAuth = auth.onAuthStateChanged(
+            async (userAuth) => {
+                if (userAuth) {
+                    const userRef = await createUserProfileDocument(userAuth);
 
-        this.unsubscribeFromAuth = auth.onAuthStateChanged(async (userAuth) => {
-            if (userAuth) {
-                const userRef = await createUserProfileDocument(userAuth);
-
-                userRef.onSnapshot((snapShot) => {
-                    this.setState({currentUser:{
-                        id: snapShot.id,
-                        ...snapShot.data(),
-                    }});
-                });
+                    userRef.onSnapshot((snapShot) => {
+                        setCurrentUser({
+                            id: snapShot.id,
+                            ...snapShot.data(),
+                        });
+                    });
+                } else setCurrentUser(userAuth);
             }
-            else
-                this.setState({currentUser:userAuth});
-        });
-    }
-
-    componentWillUnmount() {
-        this.unsubscribeFromAuth();
-    }
-
-    render() {
-        return (
-            <div>
-                <UserContext.Provider value={this.state.currentUser}>
-                    <Header />
-                </UserContext.Provider>
-                <Switch>
-                    <Route exact path="/" component={HomePage} />
-                    <Route path="/shop" component={ShopPage} />
-                    <Route exact path="/checkout" component={CheckoutPage} />
-                    <Route
-                        exact
-                        path="/signin"
-                        render={() =>
-                            this.props.currentUser ? (
-                                <Redirect to="/" />
-                            ) : (
-                                <SignInAndSignUpPage />
-                            )
-                        }
-                    />
-                </Switch>
-            </div>
         );
-    }
-}
+        return () => unsubscribeFromAuth();
+    }, [currentUser]);
+
+    return (
+        <div>
+            <UserContext.Provider value={currentUser}>
+                <Header />
+            </UserContext.Provider>
+            <Switch>
+                <Route exact path="/" component={HomePage} />
+                <Route path="/shop" component={ShopPage} />
+                <Route exact path="/checkout" component={CheckoutPage} />
+                <Route
+                    exact
+                    path="/signin"
+                    render={() =>
+                        currentUser ? (
+                            <Redirect to="/" />
+                        ) : (
+                            <SignInAndSignUpPage />
+                        )
+                    }
+                />
+            </Switch>
+        </div>
+    );
+};
 
 export default App;
