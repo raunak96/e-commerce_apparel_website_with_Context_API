@@ -1,39 +1,28 @@
-# react-context-lesson
+# react-context-API-lesson
 We are going to replace our local state management from redux to the new context API. This repository is our application before we introduced sagas to handle our asynchronous code, which is a good starting point to make the appropriate changes!
 
-# How to fork and clone
+## Changes 
 
-One quick note about cloning this project. If you wish to make commits and push the code up after cloning this repo, you should fork the project first. In order to own your own copy of this repository, you have to fork it so you get your own copy on your own profile!
+### Setting Current User using Context-API and not redux
 
-You can see the fork button in the top right corner of every GitHub project; click it and a copy of the project will be added to your GitHub profile under the same name as the original project.
+#### Case 1 (When Context Value is only consumed i.e Value does not change like SHOP_DATA)
+- First we create a Shop Context which is simply a store which stores the state for Shop in this case whose value is SHOP_DATA object.
+- Now, to use it there are 2 ways which can be seen [here](src/pages/collection/collection.component.jsx). Easier way is to use the hook **useContext(ShopContext)**, which simply returns whatever was stored in passed Context in this case ShopContext. From this, we can extract the property we want and use the value in the Component where useContext called.
 
-![alt text](https://i.ibb.co/1YN7SJ6/Screen-Shot-2019-07-01-at-2-02-40-AM.png "image to fork button")
+#### Case 2 (When context value is consumed as well as produced i.e value changes but changes at Upper Component and propagated to lower level like currentUser changes in App component and propagated to Header Component)
+- Similar to above User Context is made whose initial value is null and this value is changed in APP component, by subscribing to onAuthChanged Observable pattern which returns user info when changed as it happened previously.
+- Now for changing this Context's value, we have to use **State** and **setState** or **useState() hook** to set initial value for user local to App component and change it according to condition relevant to it using **setState** in this case on **onAuthChanged()**.
+- Now, in order for lower level Components, to Consume or use this Context's value(which is also App's local state) unlike passing like props which lead to prop-drilling problem, we wrap the component which might require this value(or its descendant) for Eg <ShopContext.Producer value={currentUser}>{children}</ShopContext.Producer>. [Example Code](src/App.js)
+- Now, unlike props where if Component which had to use the value was nested 2-3 or more levels below the base Component whose state is passed then in between states had to pass on the state value as props leading to props-drilling, Context-API does not have that problem.
+- In Context-API, the in between components do not need to leverage props to simply pass down the value to the Component which required it. Any Component, as long as any of its ancestor was wrapped around the context Container can directly utilize the Context value by **importing** the **context** in this case Shop Context and using the **useContext() hook**.
 
-After forking the project, simply clone it the way you would from the new forked project in your own GitHub repository and you can commit and push to it freely!
-
-
-# After you fork and clone:
-
-## Install dependencies
-
-In your terminal after you clone your project down, remember to run either `yarn` or `npm install` to build all the dependencies in the project.
-
-## Set your firebase config
-
-Remember to replace the `config` variable in your `firebase.utils.js` with your own config object from the firebase dashboard! Navigate to the project settings and scroll down to the config code. Copy the object in the code and replace the variable in your cloned code.
-
-![alt text](https://i.ibb.co/6ywMkBf/Screen-Shot-2019-07-01-at-11-35-02-AM.png "image to firebase config")
-
-
-## Set your stripe publishable key 
-
-Set the `publishableKey` variable in the `stripe-button.component.jsx` with your own publishable key from the stripe dashboard.
-
-![alt text](https://i.ibb.co/djQTmVF/Screen-Shot-2019-07-01-at-2-18-50-AM.png "image to publishable key")
-
-## Things to set before you deploy
-
-You will also need to connect your existing Heroku app to this new forked and cloned repo, or you have to create a new Heroku app and push to it. A quick refresher on how to do either of these:
+#### Case 3 (like Case 2 but Context Value changes/produced at lower level and consumed at Higher level like or non-descendent for Eg for ToggleCartHidden, the value of hidden is produced/changed at CartIcon component but consumed/used at CartDropDown and CartDropDown is not a descendant of CartIcon)
+- Since Context-API produces change to Context by leveraging State, similar to props-state logic, state changes can only be propagated downwards, hence state can only be leveraged and Produced at Common Ancestor of both the producer-consumer Components(LCA for efficiency), in this case Header Component and then Both prodcuer and consumer realted data passed to CartIcon and CartDropdown respectively.
+- First, we make a CartContext which is an object -> {hidden:*true*, *toggleCartHidden=()=>{}*} where toggleCartHidden is function which will be passed to CartIcon to change **hidden** key's value of CartContext(fn initialised to do nothing to avoid any problems).
+- Now, in Header component, we use **useState hook** to make state for cartHidden property. Then, CartContext.Producer container is wrapped around CartIcon
+with values of CartContext i.e hidden and toggleCartHidden fn which is now equal to a fn which when called toggles the hidden value. [Example Code](src/components/header/header.component.jsx).
+- Using the hidden value we used in state of Header Component, CartDropdown is either rendered or not. 
+- Now in Cart Icon component, this toggleCartHidden function is destructed from CartContext using **useContext hook** and on Clicking CartIcon toggleCartHidden function is invoked which toggles the hidden value of CartContext and since it was defined using setState of Header, its hidden value is also toggled and thus reflected and CartDropDown toggling is done with accuracy.
 
 ## Set to an existing Heroku app
 
